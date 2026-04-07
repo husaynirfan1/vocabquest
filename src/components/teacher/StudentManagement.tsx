@@ -70,7 +70,7 @@ export function StudentManagement({ teacher }: { teacher: any }) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
 
-  const [formData, setFormData] = useState({ name: '', email: '', classId: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', classId: '', password: '' });
 
   useEffect(() => {
     if (teacher) loadData();
@@ -96,11 +96,11 @@ export function StudentManagement({ teacher }: { teacher: any }) {
   });
 
   const handleAddStudent = async () => {
-    if (!formData.name || !formData.email) {
-      toast.error('Please fill in all fields');
+    if (!formData.name || !formData.email || !formData.password) {
+      toast.error('Please fill in all required fields');
       return;
     }
-    const newStudent: Student = {
+    const newStudent = {
       id: `student-${Date.now()}`,
       name: formData.name,
       email: formData.email,
@@ -120,11 +120,11 @@ export function StudentManagement({ teacher }: { teacher: any }) {
         ['ffdfbf', 'b6e3f4', 'ffd5dc', 'c0aede', 'd1d4f9'][Math.floor(Math.random() * 5)]
       }`,
       createdAt: new Date().toISOString(),
-      password: 'changeme123',
+      password: formData.password,
     } as any;
     await createUser(newStudent);
     toast.success('Student added successfully!');
-    setFormData({ name: '', email: '', classId: '' });
+    setFormData({ name: '', email: '', classId: '', password: '' });
     setIsAddDialogOpen(false);
     loadData();
   };
@@ -140,7 +140,7 @@ export function StudentManagement({ teacher }: { teacher: any }) {
     await assignStudentToClass(editingStudent.id, formData.classId || null);
     toast.success('Student updated successfully!');
     setEditingStudent(null);
-    setFormData({ name: '', email: '', classId: '' });
+    setFormData({ name: '', email: '', classId: '', password: '' });
     loadData();
   };
 
@@ -154,13 +154,13 @@ export function StudentManagement({ teacher }: { teacher: any }) {
 
   const openEditDialog = (student: Student) => {
     setEditingStudent(student);
-    setFormData({ name: student.name, email: student.email, classId: student.classId ?? '' });
+    setFormData({ name: student.name, email: student.email, classId: student.classId ?? '', password: '' });
   };
 
   const getClassForStudent = (student: Student) =>
     classes.find((c) => c.id === student.classId);
 
-  const StudentForm = ({ onSubmit, submitLabel }: { onSubmit: () => void; submitLabel: string }) => (
+  const renderForm = (onSubmit: () => void, submitLabel: string, showPasswordRequired: boolean) => (
     <div className="space-y-4 pt-4">
       <div className="space-y-2">
         <Label htmlFor="form-name">Full Name</Label>
@@ -168,7 +168,7 @@ export function StudentManagement({ teacher }: { teacher: any }) {
           id="form-name"
           placeholder="Enter student name"
           value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
         />
       </div>
       <div className="space-y-2">
@@ -178,14 +178,26 @@ export function StudentManagement({ teacher }: { teacher: any }) {
           type="email"
           placeholder="Enter student email"
           value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="form-password">
+          Password{!showPasswordRequired && ' (leave blank to keep current)'}
+        </Label>
+        <Input
+          id="form-password"
+          type="password"
+          placeholder={showPasswordRequired ? 'Set student password' : 'Enter new password'}
+          value={formData.password}
+          onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
         />
       </div>
       <div className="space-y-2">
         <Label>Class (optional)</Label>
         <Select
           value={formData.classId || 'none'}
-          onValueChange={(v) => setFormData({ ...formData, classId: v === 'none' ? '' : v })}
+          onValueChange={(v) => setFormData((prev) => ({ ...prev, classId: v === 'none' ? '' : v }))}
         >
           <SelectTrigger>
             <SelectValue placeholder="No class assigned" />
@@ -237,7 +249,7 @@ export function StudentManagement({ teacher }: { teacher: any }) {
             <DialogHeader>
               <DialogTitle>Add New Student</DialogTitle>
             </DialogHeader>
-            <StudentForm onSubmit={handleAddStudent} submitLabel="Add Student" />
+            {renderForm(handleAddStudent, "Add Student", true)}
           </DialogContent>
         </Dialog>
       </motion.div>
@@ -382,7 +394,7 @@ export function StudentManagement({ teacher }: { teacher: any }) {
           <DialogHeader>
             <DialogTitle>Edit Student</DialogTitle>
           </DialogHeader>
-          <StudentForm onSubmit={handleEditStudent} submitLabel="Update Student" />
+          {renderForm(handleEditStudent, "Update Student", false)}
         </DialogContent>
       </Dialog>
 

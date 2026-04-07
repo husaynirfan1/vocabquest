@@ -13,7 +13,8 @@ import {
   BookOpen,
   Edit2,
   CheckCircle2,
-  Clock
+  Clock,
+  Lock,
 } from 'lucide-react';
 import type { Student } from '@/types';
 import { updateUser } from '@/services/database';
@@ -47,6 +48,8 @@ export function ProfileSection({ student, onUpdate }: ProfileSectionProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(student.name);
   const [email, setEmail] = useState(student.email);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const handleSave = async () => {
     if (!name || !email) {
@@ -54,15 +57,30 @@ export function ProfileSection({ student, onUpdate }: ProfileSectionProps) {
       return;
     }
 
-    const updatedStudent = {
+    if (newPassword && newPassword !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    if (newPassword && newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+
+    const updatedStudent: any = {
       ...student,
       name,
       email,
     };
+    if (newPassword) {
+      updatedStudent.password = newPassword;
+    }
 
     await updateUser(updatedStudent);
     toast.success('Profile updated successfully!');
     setIsEditing(false);
+    setNewPassword('');
+    setConfirmPassword('');
     onUpdate();
   };
 
@@ -140,6 +158,21 @@ export function ProfileSection({ student, onUpdate }: ProfileSectionProps) {
                       placeholder="Your email"
                       type="email"
                     />
+                    <div className="flex gap-2 items-center pt-2">
+                      <Lock className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <Input
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="New password (optional)"
+                        type="password"
+                      />
+                      <Input
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Confirm password"
+                        type="password"
+                      />
+                    </div>
                   </div>
                 ) : (
                   <>

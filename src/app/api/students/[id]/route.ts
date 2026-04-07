@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
+import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { users } from "@/lib/schema";
 
@@ -70,6 +71,7 @@ export async function PUT(
   if (body.schoolName !== undefined) updateData.schoolName = body.schoolName;
   if (body.className !== undefined) updateData.className = body.className;
   if (body.subject !== undefined) updateData.subject = body.subject;
+  if (body.password) updateData.password = await bcrypt.hash(body.password, 10);
 
   if (Object.keys(updateData).length > 0) {
     await db.update(users).set(updateData).where(eq(users.id, id));
