@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm -v)",
+      "Bash(ls src/components/teacher/*.tsx src/components/student/*.tsx)",
+      "Bash(ls src/components/teacher/*.tsx)",
+      "Bash(ls src/components/student/*.tsx)",
+      "Bash(npm install:*)",
+      "Bash(npx next:*)",
+      "Bash(gh auth:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}
